@@ -237,6 +237,13 @@ class MMData:
             self.num_planes = num_planes
         return self.num_planes
     
+    def get_position_names(self):
+        """Return position (A1-Site0, B3-Site10 etc) names and well names (A1, B3 etc) of the acquisition"""
+        positions = re.findall('(?:(?<=Label":"))([a-zA-Z0-9_-]+)', self.get_MM_metadata())
+        wells = np.unique([re.findall('([a-zA-Z0-9_]+)(?:(?=-Site))', x)[0] for x in positions])
+
+        return positions, wells
+    
     
 def onselect(eclick, erelease):
     'eclick and erelease are matplotlib events at press and release'

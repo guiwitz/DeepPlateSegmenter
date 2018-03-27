@@ -203,13 +203,6 @@ def steerable2_crosscorr(image, alpha=0, sigma=1):
     
     return filtered
 
-def get_position_names(MMobj):
-    """Return position (A1-Site0, B3-Site10 etc) names and well names (A1, B3 etc) of the acquisition"""
-    positions = re.findall('(?:(?<=Label":"))([a-zA-Z0-9_-]+)', MMobj.get_MM_metadata())
-    wells = np.unique([re.findall('([a-zA-Z0-9_]+)(?:(?=-Site))', x)[0] for x in positions])
-
-    return positions, wells
-
 
 output =True
 
