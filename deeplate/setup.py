@@ -9,5 +9,5 @@ setup(name='deeplate',
       license='MIT',
       packages=['deeplate'],
       zip_safe=False,
-      #install_requires=['numpy','skimage','scipy','keras'],
+      install_requires=['numpy','scikit-image','scipy','keras','tensorflow','jupyter','pandas','h5py'],
       )
