@@ -3,6 +3,8 @@ import os
 
 from deeplate.MMdata import MMData 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import re
 import scipy.ndimage as nd
@@ -14,19 +16,22 @@ import pandas as pd
 
 import deeplate.platesegmenter as ps
 
+#print(sys.executable)
+
 folder = sys.argv[1]
 weights_folder = sys.argv[2]
 folder_to_save = sys.argv[3]
 position = int(sys.argv[4])
-bf_ch = int(sys.argv[5])
-fluo_ch = int(sys.argv[6])
+num_positions = int(sys.argv[5])
+bf_ch = int(sys.argv[6])
+fluo_ch = int(sys.argv[7])
 
 #create MM object
 MMobj = MMData(folder = folder)
 
 #load deep learning model and weights
 plate_model = ps.get_unet(1, MMobj.height,MMobj.width)
-plate_model.load_weights(weights_folder+'weights.h5')
+plate_model.load_weights(weights_folder+'/weights.h5')
 
 
 #get metadata
@@ -34,7 +39,7 @@ z_step = MMobj.get_zstep()
 positions, well = MMobj.get_position_names()
 
 #do the segmentation
-for i in range(position,position+1):#range(len(positions)):
+for i in range(position,position+num_positions):#range(len(positions)):
     
     #load bf stack
     stack = MMobj.get_stack(frame=0,channel=bf_ch,position=i, compress = 1)
@@ -52,8 +57,8 @@ for i in range(position,position+1):#range(len(positions)):
     
     #threshold deepe learning segmentation and clean resulting mask
     plate_im_mask2 = plate_im_mask.copy()
-    plate_im_mask2[plate_im_mask2<0.5]=0
-    plate_im_mask2[plate_im_mask2>0.5]=1
+    plate_im_mask2[plate_im_mask2<0.1]=0
+    plate_im_mask2[plate_im_mask2>0.1]=1
 
     masklab = morphology.label(plate_im_mask2)
     cellinfo = regionprops(masklab)
