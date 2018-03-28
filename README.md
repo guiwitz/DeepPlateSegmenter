@@ -3,7 +3,7 @@ DeepPlateSegmenter is a Python package designed to segment images acquired using
 Certain functions and the Jupyter notebooks are specifically designed to analyze data acquired using the plate acquisition
 module of Micro-Manager, and to segment cells of phase correlation images. However the code can easily be recycled to accept other inputs.
 
-##Installaton
+## Installaton
 Download or clone this repository. To use it, add it to you python path or alternatively move to the folder DeepPlateSegmenter/deeplate and install using:  
 
 pip3 install .
