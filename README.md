@@ -21,7 +21,7 @@ To avoid any installation limitations, the whole software should run in a virtua
 1. Download or clone this repository (I assume you leave it in your home directory).
 2. Move to /DeepPlateSegmenter/deeplate and create two virtual environments, one for CPU, one for GPU:  
 
-	```python  
+	```bash  
 	ml purge  
 	ml Python/3.5.2-goolf-1.7.20  
 	virtualenv ~/DeepPlateSegmenter/venv-deeplate 
@@ -31,7 +31,7 @@ To avoid any installation limitations, the whole software should run in a virtua
 	deactivate
 	```  
 	
-	```
+	```bash
 	ml purge  
 	ml Python/3.5.2-goolf-1.7.20  
 	virtualenv ~/DeepPlateSegmenter/venv-deeplate-gpu  
@@ -43,20 +43,22 @@ To avoid any installation limitations, the whole software should run in a virtua
 
 3.	Every time you want to manually run software from this package activate one of the virtual environments (usually CPU) using:
 
-	```
+	```bash
 	ml purge  
 	ml Python/3.5.2-goolf-1.7.20  
 	source ~/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate
 	```  
 
-4. Then you can run things from the command line, as usual, running:  
-	```
+4. Then you can run things from the command line, as usual, e.g. by running:  
+	```bash
 	python myprogram.py
 	```  
 	or you can run a Jupyter notebook by starting the environment using:  
-	```
+	```bash
 	jupyter notebook
 	``` 
+5. To analyze a dataset, use the Jupyter notebook in the cluster folder. It automatically splits the analysis
+of multiple positions in groups that are then sent for GPU calculation via slurm.
 	
 
 ## Usage
