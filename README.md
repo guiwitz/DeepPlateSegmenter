@@ -1,16 +1,68 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 # DeepPlateSegmenter
 DeepPlateSegmenter is a Python package designed to segment images acquired using Micro-Manager using convolutional neural networks.
 Certain functions and the Jupyter notebooks are specifically designed to analyze data acquired using the plate acquisition
 module of Micro-Manager, and to segment cells of phase correlation images. However the code can easily be recycled to accept other inputs.
 
-## Installaton
+![](img/segmentation.png)
+
+## Installation
 Download or clone this repository. To use it, add it to you python path or alternatively move to the folder DeepPlateSegmenter/deeplate and install using:  
 
 pip3 install .
 
 This installs several large packages as well as the Jupyter notebook environment. If you want to avoid polluting your environment with those installs, I recommend installing this package in a virtual environment.
 
-![](img/segmentation.png)
+Additionally you need to install tensorflow manually. It is not included in the installation to let the user choose whether to include the CPU version (pip3 install tensorflow) or the GPU one (pip3 install tensorflow-gpu).
+
+## Specific instructions for installation in scicore cluster
+
+To avoid any installation limitations, the whole software should run in a virtual environment. This is the recommended way of doing:
+
+1. Download or clone this repository (I assume you leave it in your home directory).
+2. Move to /DeepPlateSegmenter/deeplate and create two virtual environments, one for CPU, one for GPU:  
+
+	```python  
+	ml purge  
+	ml Python/3.5.2-goolf-1.7.20  
+	virtualenv ~/DeepPlateSegmenter/venv-deeplate 
+	source ~/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate 
+	pip3 install .  
+	pip3 install tensorflow
+	deactivate
+	```  
+	
+	```
+	ml purge  
+	ml Python/3.5.2-goolf-1.7.20  
+	virtualenv ~/DeepPlateSegmenter/venv-deeplate-gpu  
+	source ~/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate  
+	pip3 install .  
+	pip3 install tensorflow-gpu
+	deactivate
+	```  
+
+3.	Every time you want to manually run software from this package activate one of the virtual environments (usually CPU) using:
+
+	```
+	ml purge  
+	ml Python/3.5.2-goolf-1.7.20  
+	source ~/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate
+	```  
+
+4. Then you can run things from the command line, as usual, running:  
+	```
+	python myprogram.py
+	```  
+	or you can run a Jupyter notebook by starting the environment using:  
+	```
+	jupyter notebook
+	``` 
+	
 
 ## Usage
 The training set is created using ***generate\_plate\_training\_set.ipynb***. Segmentation is done on fluorescence and the used on the phase correlation images to create the trainin set. A weight-map is also created, allowing to enhance the importance of cell borders.  
