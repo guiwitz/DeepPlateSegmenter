@@ -14,6 +14,6 @@
 module load Python/3.5.2-goolf-1.7.20
 module load cuDNN
 source /scicore/home/nimwegen/witzg/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate
-python deep_plate_train.py "/scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126/" 96 96 1
+python deep_plate_train.py "/scicore/home/nimwegen/witzg/DeepLearningData/Testcluster/" 96 96 1
 
 f.close()
