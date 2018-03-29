@@ -1,8 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
 # DeepPlateSegmenter
 DeepPlateSegmenter is a Python package designed to segment images acquired using Micro-Manager using convolutional neural networks.
 Certain functions and the Jupyter notebooks are specifically designed to analyze data acquired using the plate acquisition
