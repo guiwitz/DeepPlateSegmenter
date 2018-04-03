@@ -53,6 +53,48 @@ def phase_corr_simple(stack, thickness, z_step):
     
     return correlated_norm
 
+def phase_corr_simple_midplane(stack, midplane, thickness, z_step):
+    """Return phase correlation image based on a bright field stack
+    
+    Parameters
+    ----------
+    stack : 3D numpy array
+        stack to be correlated
+    thickness: float 
+        Thickness of cell [nm] (typically 800)
+    z_step: float
+        Size of steps between planes [nm]
+        
+    Returns
+    -------
+    correlated_norm : 2D numpy array
+        Correlation image
+    """
+    #corr_stack = stack
+    num_max = np.max([midplane,stack.shape[2]-midplane])
+    corr_stack = stack[:,:,midplane-num_max:midplane+num_max+1]
+    nbplanes = corr_stack.shape[2]
+    middle_plane = round((nbplanes-1)/2)
+    
+    heightpos = z_step*(np.arange(corr_stack.shape[2])-middle_plane)
+    
+    gaussderiv = -heightpos*np.exp(-heightpos**2/(2*thickness**2))
+    gaussderiv = gaussderiv/np.linalg.norm(gaussderiv)
+    #height_vals = height_vals[np.newaxis,np.newaxis,...]
+    
+    height_vals = np.empty(corr_stack.shape)
+    height_vals[:] = gaussderiv
+    
+    image_norm = corr_stack/np.resize(np.sqrt(np.sum(corr_stack*corr_stack,axis =2)),
+                                      (nbplanes, corr_stack.shape[0],corr_stack.shape[1])).transpose(1,2,0)
+    
+    #correlated_norm = ndimage.convolve(image_norm, height_vals, mode='constant', cval=0.0)
+    #correlated_norm = scipy.signal.convolve(image_norm, height_vals, mode='valid')
+    correlated_norm = image_norm*height_vals
+    correlated_norm=np.sum(correlated_norm,axis =2)
+    
+    return correlated_norm
+
 def phase_corr(stack, z0, thickness, z_step):
     """Return phase correlation image based on a bright field stack
     

@@ -100,7 +100,7 @@ class MMData:
             if self.mm_meta is None:
                 self.get_MM_metadata()
                 
-            height = int(re.findall('(?:(?<=Height":)|(?<=Height":")|(?<=Height":\{"PropVal":"))(\d+).*', self.mm_meta)[0])
+            height = int(re.findall('(?:(?<=Height":")|(?<=Height":)|(?<=Height":\{"PropVal":"))(\d+).*', self.mm_meta)[0])
             #height = int(re.findall('(?:((?<=Height":")|(?<=Height":\{"PropVal":")))(\d+).*', self.mm_meta)[0])
             self.height = height
         return self.height
@@ -110,7 +110,7 @@ class MMData:
         if self.width is None:
             if self.mm_meta is None:
                 self.get_MM_metadata()
-            width = int(re.findall('(?:(?<=Width":)|(?<=Width":")|(?<=Width":\{"PropVal":"))(\d+).*', self.mm_meta)[0])
+            width = int(re.findall('(?:(?<=Width":")|(?<=Width":)|(?<=Width":\{"PropVal":"))(\d+).*', self.mm_meta)[0])
             self.width = width
         return self.width
     
@@ -119,7 +119,8 @@ class MMData:
         if self.interval is None:
             if self.mm_meta is None:
                 self.get_MM_metadata()
-            interval = int(re.findall('(?<=WaitInterval":)|(?<=WaitInterval":")(\d+).*', self.mm_meta)[0])
+            #interval = int(re.findall('(?<=WaitInterval":")|(?<=WaitInterval":)(\d+).*', self.mm_meta)[0])
+            interval = int(re.findall('(?<=WaitInterval":)["]*(\d+).*', self.mm_meta)[0])
             self.interval = interval
         return self.interval
     
@@ -218,12 +219,14 @@ class MMData:
     
     def get_channels(self):
         """Return channels of the acquisition"""
-        self.channels = re.findall('(?<=ChNames":\[)|(?<=ChNames":"\[)(.*?)(?=\].*)',self.get_MM_metadata())[0].replace('"','').split(',')
+        #self.channels = re.findall('(?<=ChNames":"\[)|(?<=ChNames":\[)(.*?)(?=\].*)',self.get_MM_metadata())[0].replace('"','').split(',')
+        self.channels = re.findall('(?<=ChNames":)["]*\[(.*?)(?=\].*)',self.get_MM_metadata())[0].replace('"','').split(',')
         return self.channels
     
     def get_zstep(self):
         """Return size of the z-step in stack acquisition in nm"""
-        z_step = float(re.findall('(?:(?<=z-step_um":)|(?<=z-step_um":"))([\d\.]+).*', self.get_MM_metadata())[0])*1000
+        #z_step = float(re.findall('(?:(?<=z-step_um":")|(?<=z-step_um":))([\d\.]+).*', self.get_MM_metadata())[0])*1000
+        z_step = float(re.findall('(?:(?<=z-step_um":)["]*)([\d\.]+).*', self.get_MM_metadata())[0])*1000
         return z_step
     
     def get_number_planes(self):
@@ -239,7 +242,7 @@ class MMData:
     
     def get_position_names(self):
         """Return position (A1-Site0, B3-Site10 etc) names and well names (A1, B3 etc) of the acquisition"""
-        positions = re.findall('(?:(?<=Label":"))([a-zA-Z0-9_-]+)', self.get_MM_metadata())
+        positions = re.findall('(?:(?<=Label":")|(?<=label":"))([a-zA-Z0-9_-]+)', self.get_MM_metadata())
         wells = np.unique([re.findall('([a-zA-Z0-9_]+)(?:(?=-Site))', x)[0] for x in positions])
 
         return positions, wells
