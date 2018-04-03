@@ -64,7 +64,7 @@ for i in range(position,position+num_positions):#range(len(positions)):
     cellinfo = regionprops(masklab)
     newMask = np.zeros(masklab.shape)
     for c in cellinfo:
-        if (c.label>0)&(c.area>10)&(c.area<10000):
+        if (c.label>0)&(c.area>100)&(c.area<10000):#&(c.solidity>0.8)&(c.eccentricity>0.6):
             newMask[masklab==c.label]=1
     
     #load fluo image
@@ -84,6 +84,10 @@ for i in range(position,position+num_positions):#range(len(positions)):
     #save image
     fig, ax = plt.subplots(figsize=(20,20))
     plt.imshow(correlated_norm_gauss,cmap='gray')
-    plt.imshow(label2rgb(label(plate_im_mask2),bg_label=0),alpha = 0.4)
+    plt.imshow(label2rgb(label(newMask),bg_label=0),alpha = 0.4)
     plt.show()
     fig.savefig(folder_to_save+positions[i]+'seg.png')
+    
+    np.save(folder_to_save+'mask_'+str(i)+'.npy',newMask)
+    np.save(folder_to_save+'corr_'+str(i)+'.npy',correlated_norm_gauss)
+    np.save(folder_to_save+'prob_'+str(i)+'.npy',plate_im_mask)

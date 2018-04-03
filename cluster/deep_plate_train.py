@@ -1,5 +1,5 @@
 import sys
-import platesegmenter as ps
+import deeplate.platesegmenter as ps
 
 datafolder = sys.argv[1]
 img_rows = int(sys.argv[2])

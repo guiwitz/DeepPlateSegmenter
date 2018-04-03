@@ -8,12 +8,13 @@
 #SBATCH --qos=6hours
 #SBATCH --partition=k80
 #SBATCH --gres=gpu:1
-#SBATCH -e /scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126/training_error.log
-#SBATCH -o /scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126/training_output.log
+#SBATCH -e /scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126_manual/training_error.log
+#SBATCH -o /scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126_manual/training_output.log
 
 module load Python/3.5.2-goolf-1.7.20
 module load cuDNN
+
 source /scicore/home/nimwegen/witzg/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate
-python deep_plate_train.py "/scicore/home/nimwegen/witzg/DeepLearningData/Testcluster/" 96 96 1
+python /scicore/home/nimwegen/witzg/DeepPlateSegmenter/cluster/deep_plate_train.py "/scicore/home/nimwegen/witzg/DeepLearningData/Learn20170126_manual/" 128 128 1
 
 f.close()
