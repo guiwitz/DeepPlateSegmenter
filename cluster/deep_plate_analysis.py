@@ -38,6 +38,8 @@ plate_model.load_weights(weights_folder+'/weights.h5')
 z_step = MMobj.get_zstep()
 positions, well = MMobj.get_position_names()
 
+mid = int((MMobj.num_planes[bf_ch]-1)/2)
+
 #do the segmentation
 for i in range(position,position+num_positions):#range(len(positions)):
     
@@ -45,7 +47,8 @@ for i in range(position,position+num_positions):#range(len(positions)):
     stack = MMobj.get_stack(frame=0,channel=bf_ch,position=i, compress = 1)
     
     #calculate correlation image
-    correlated_norm = ps.phase_corr_simple(stack,thickness=800,z_step=z_step)
+    #correlated_norm = ps.phase_corr_simple(stack,thickness=800,z_step=z_step)
+    correlated_norm = ps.phase_corr_varying(stack, midplane = mid, thickness = 800, z_step=z_step, numplanes =10)    
     correlated_norm_gauss = nd.gaussian_filter(correlated_norm,3)
     
     #deep-segment image
@@ -91,3 +94,5 @@ for i in range(position,position+num_positions):#range(len(positions)):
     np.save(folder_to_save+'mask_'+str(i)+'.npy',newMask)
     np.save(folder_to_save+'corr_'+str(i)+'.npy',correlated_norm_gauss)
     np.save(folder_to_save+'prob_'+str(i)+'.npy',plate_im_mask)
+    
+    
