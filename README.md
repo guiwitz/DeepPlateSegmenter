@@ -58,7 +58,7 @@ To avoid any installation limitations, the whole software should run in a virtua
 	ml Firefox
 	jupyter notebook
 	```
-	Firefox is needed to open the Jupyter notebook.  
+	Firefox is needed to open the Jupyter notebook.
 5. To analyze a dataset, use the Jupyter notebook in the cluster folder. It automatically splits the analysis
 of multiple positions in groups that are then sent for GPU calculation via slurm.
 	
