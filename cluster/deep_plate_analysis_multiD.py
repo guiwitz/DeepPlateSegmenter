@@ -102,15 +102,20 @@ for i in range(position,position+num_positions):#range(len(positions)):
             newMask[masklab==c.label]=1
     
     #calculate local properties
-    
-    cell_info = regionprops(label(complete),im_fluo)
+    complete_lab = label(newMask)
+    cell_info = regionprops(complete_lab,im_fluo)
     
     mean_int = [x.mean_intensity for x in cell_info]
     posx = [x.centroid[0] for x in cell_info]
     posy = [x.centroid[1] for x in cell_info]
+    sum_int = [np.sum(im_fluo[complete_lab==x.label]) for x in cell_info]
+    all_pix = [im_fluo[complete_lab==x.label] for x in cell_info]
+    area = [x.area for x in cell_info]
     #create a dataframe
-    cell_struct = {'mean_fluo':mean_int,'posx': posx, 'posy': posy}
+    cell_struct = {'sum_fluo': sum_int,'mean_fluo':mean_int,'area': area, 'posx': posx, 'posy': posy,'all_pix':all_pix}
     cell_frame = pd.DataFrame(cell_struct)
+    cell_frame['pos_name'] = positions[i]
+    cell_frame['well_name'] = well_str[i]
     
     cell_frame.to_csv(folder_to_save+'/dataframes/'+positions[i]+'.csv')
     
