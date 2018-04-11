@@ -176,10 +176,6 @@ class MMData:
                                  (self.mm_map['channel']==channel) & (self.mm_map['slice']==plane),
                                  ['chunk','image_index','offset']].values
         
-        #img = Image.open(self.folder+'/'+selected[0,0])
-        #img.seek(selected[0,1])
-        #image = img.getdata()
-        #image = np.reshape(np.array(image),newshape=[img.height,img.width])
         
         with open(self.folder+'/'+selected[0,0], "rb") as binary_file:
 
@@ -195,10 +191,32 @@ class MMData:
             width = self.width
             height = self.height
             
-            #im_bytes = np.array(im_bytes)
             im_bytes = np.fromiter(im_bytes, np.float)
             image = np.reshape(im_bytes,newshape=[self.height,self.width])
-            #image = np.array([im_bytes[i:i + width:compress] for i in range(0, len(im_bytes), compress*width)])
+
+        return image
+    
+    
+    def get_image_fast(self, frame=0,channel=0,plane=0,position=0, compress = 1):
+        """Return image at a given frame, channel, plane, position. One can skip every n'th pixel by setting 
+        compress to n"""
+        if self.mm_map is None:
+            self.get_map_indices()
+        selected = self.mm_map.loc[(self.mm_map['frame'] == frame) & (self.mm_map['position']==position) &
+                                 (self.mm_map['channel']==channel) & (self.mm_map['slice']==plane),
+                                 ['chunk','image_index','offset']].values
+        
+        
+        with open(self.folder+'/'+selected[0,0], "rb") as binary_file:
+
+            ifd_pos = selected[0,2]
+            binary_file.seek(ifd_pos) 
+            nb_tags = np.fromfile(binary_file, np.dtype('<H'),count=1)
+            binary_file.seek(ifd_pos+2+(nb_tags[0])*12+0)
+            next_ifd = np.fromfile(binary_file,np.dtype('<L'),count=1)[0]
+            im_bytes = np.fromfile(binary_file, np.dtype('<H'),count = self.height*self.width)
+            image= np.reshape(im_bytes,newshape=[self.height,self.width])
+            image = image.astype(float)
 
         return image
     
@@ -209,6 +227,15 @@ class MMData:
         stack = np.empty((self.height,self.width,planes.shape[0]))
         for i in range(planes.shape[0]):
             stack[:,:,i] = self.get_image(frame=frame,channel=channel,plane=planes[i],position=position, compress = compress)
+        return stack
+    
+    def get_stack_fast(self, frame=0,channel=0,position=0, compress = 1):
+        """Return complete z-stack for given frame, channel, position"""
+        mm_map = self.get_map_indices()
+        planes = mm_map[(mm_map['frame']==0)&(mm_map['position']==0)&(mm_map['channel']==channel)]['slice'].values
+        stack = np.empty((self.height,self.width,planes.shape[0]))
+        for i in range(planes.shape[0]):
+            stack[:,:,i] = self.get_image_fast(frame=frame,channel=channel,plane=planes[i],position=position, compress = compress)
         return stack
         
     

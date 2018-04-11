@@ -15,7 +15,7 @@ from skimage.color import label2rgb
 import pandas as pd
 
 import deeplate.platesegmenter as ps
-
+import time
 #print(sys.executable)
 
 folder = sys.argv[1]
@@ -53,23 +53,32 @@ if not os.path.exists(folder_to_save+'/dataframes'):
 #do the segmentation
 for i in range(position,position+num_positions):#range(len(positions)):
     
+    start = time.time()
     #load bf stack
     #stack = MMobj.get_stack(frame=0,channel=bf_ch,position=i, compress = 1)
     stack = np.empty((MMobj.height,MMobj.width, 10))
     for j in range(10):
         plane = mid-5+j
-        stack[:,:,j] = MMobj.get_image(frame=0,channel=bf_ch,plane = plane,position=i, compress = 1)
+        stack[:,:,j] = MMobj.get_image_fast(frame=0,channel=bf_ch,plane = plane,position=i, compress = 1)
         stack[:,:,j] = nd.gaussian_filter(stack[:,:,j],3)
+    
+    print('t1: '+str(time.time()-start))
+    start = time.time()
     
     meanstack = np.mean(stack,axis =2)
     for m in range(stack.shape[2]):
         stack[:,:,m] = stack[:,:,m]-meanstack
     
-    
     stack = stack/np.std(stack)
     
+    print('t1b: '+str(time.time()-start))
+    start = time.time()
+    
     #load fluo image
-    im_fluo = MMobj.get_stack(frame=0,channel=fluo_ch,position=i, compress = 1)[:,:,0]
+    im_fluo = MMobj.get_stack_fast(frame=0,channel=fluo_ch,position=i, compress = 1)[:,:,0]
+    
+    print('t2: '+str(time.time()-start))
+    start = time.time()
     
     complete = np.empty((MMobj.height,MMobj.width))
     complete_proba = np.empty((MMobj.height,MMobj.width))
@@ -78,7 +87,6 @@ for i in range(position,position+num_positions):#range(len(positions)):
     stack = np.pad(stack,((topad,topad),(topad,topad),(0,0)),mode = 'constant')
     for k in range(8):
         for m in range(8):
-            
             
             stack_cur = stack[k*256:(k+1)*256+2*topad,m*256:(m+1)*256+2*topad,:]
 
@@ -91,17 +99,25 @@ for i in range(position,position+num_positions):#range(len(positions)):
     stack = stack[topad:-topad,topad:-topad,:]
     complete = complete_proba.copy()
     
+    print('t3: '+str(time.time()-start))
+    start = time.time()
+    
     complete[complete<0.2]=0
     complete[complete>0.2]=1
     masklab = morphology.label(complete)
     cellinfo = regionprops(masklab, im_fluo)  
     cellinfo2 = regionprops(masklab, complete_proba)  
     newMask = np.zeros(masklab.shape)
+    
     for x in range(len(cellinfo)):
         c = cellinfo[x]
         c2 = cellinfo2[x]
-        if (c.label>0)&(c.area>100)&(c.area<10000)&(c.solidity>0.8)&(c.eccentricity>0.6)&(c2.max_intensity>0.8):
-            newMask[masklab==c.label]=1
+        if (c.label>0)&(c.area>100)&(c.area<10000):
+            if (c.solidity>0.8)&(c.eccentricity>0.6)&(c2.max_intensity>0.8):
+                newMask[c.coords[:,0],c.coords[:,1]]=1
+    
+    print('t4: '+str(time.time()-start))
+    start = time.time()
     
     #calculate local properties
     complete_lab = label(newMask)
@@ -110,8 +126,8 @@ for i in range(position,position+num_positions):#range(len(positions)):
     mean_int = [x.mean_intensity for x in cell_info]
     posx = [x.centroid[0] for x in cell_info]
     posy = [x.centroid[1] for x in cell_info]
-    sum_int = [np.sum(im_fluo[complete_lab==x.label]) for x in cell_info]
-    all_pix = [im_fluo[complete_lab==x.label] for x in cell_info]
+    sum_int = [np.sum(im_fluo[x.coords[:,0],x.coords[:,1]]) for x in cell_info]
+    all_pix = [im_fluo[x.coords[:,0],x.coords[:,1]] for x in cell_info]
     area = [x.area for x in cell_info]
     #create a dataframe
     cell_struct = {'sum_fluo': sum_int,'mean_fluo':mean_int,'area': area, 'posx': posx, 'posy': posy,'all_pix':all_pix}
@@ -119,17 +135,29 @@ for i in range(position,position+num_positions):#range(len(positions)):
     cell_frame['pos_name'] = positions[i]
     cell_frame['well_name'] = well_str[i]
     
+    print('t5: '+str(time.time()-start))
+    start = time.time()
+    
     cell_frame.to_csv(folder_to_save+'/dataframes/'+positions[i]+'.csv')
     
+    print('t6: '+str(time.time()-start))
+    start = time.time()
+    
     #save image
-    fig, ax = plt.subplots(figsize=(20,20))
+    fig, ax = plt.subplots(figsize=(10,10))
     plt.imshow(stack[:,:,0],cmap='gray')
-    plt.imshow(label2rgb(label(newMask),bg_label=0),alpha = 0.4)
+    plt.imshow(label2rgb(label(newMask),bg_label=0),alpha = 0.3)
     plt.show()
     fig.savefig(folder_to_save+'/images/'+positions[i]+'seg.png')
+    
+    print('t7: '+str(time.time()-start))
+    start = time.time()
     
     np.save(folder_to_save+'/mask_prob/mask_'+str(i)+'.npy',newMask)
     #np.save(folder_to_save+'corr_'+str(i)+'.npy',correlated_norm_gauss)
     np.save(folder_to_save+'/mask_prob/prob_'+str(i)+'.npy',complete_proba)
+    
+    print('t8: '+str(time.time()-start))
+    start = time.time()
     
     
