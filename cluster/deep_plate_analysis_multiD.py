@@ -37,6 +37,8 @@ plate_model.load_weights(weights_folder+'/weights.h5')
 #get metadata
 z_step = MMobj.get_zstep()
 positions, well = MMobj.get_position_names()
+well_str = [re.findall('(.*?)-.*',x)[0] for x in positions]
+
 
 mid = int((MMobj.num_planes[bf_ch]-1)/2)
 
