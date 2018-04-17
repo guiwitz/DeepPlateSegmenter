@@ -37,7 +37,7 @@ To avoid any installation limitations, the whole software should run in a virtua
 	virtualenv ~/DeepPlateSegmenter/venv-deeplate-gpu  
 	source ~/DeepPlateSegmenter/venv-deeplate-gpu/bin/activate  
 	pip3 install .  
-	pip3 install tensorflow-gpu
+	pip3 install tensorflow-gpu==1.4.0
 	deactivate
 	```  
 
