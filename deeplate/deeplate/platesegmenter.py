@@ -331,11 +331,48 @@ def get_unet(dims,img_rows,img_cols):
         
     return model
 
+def train_generator(folder):
+    num = 0
+    while num > -1:
+        img_load = np.load(folder+'/imgs_train_'+str(num)+'.npy')
+        mask_load = np.load(folder+'/imgs_mask_train_'+str(num)+'.npy')
+        weight_load = np.load(folder+'/imgs_weight_train_'+str(num)+'.npy')
+        
+        img_load = img_load.astype('float32')
+        mask_load = mask_load[..., np.newaxis]
+        mask_load = mask_load.astype('float32')
+        mask_load /= 255.  # scale masks to [0, 1]
+    
+        weight_load = weight_load.astype('float32')
+    
+        yield (img_load,mask_load,weight_load)
+        num += 1
+        if num==230:
+            num=0
 
-def plate_deeptrain(folder, img_rows,img_cols, dims):
+def valid_generator(folder):
+    num = 0
+    while num > -1:
+        img_load = np.load(folder+'/imgs_valid_'+str(num)+'.npy')
+        mask_load = np.load(folder+'/imgs_mask_valid_'+str(num)+'.npy')
+        weight_load = np.load(folder+'/imgs_weight_valid_'+str(num)+'.npy')
+        
+        img_load = img_load.astype('float32')
+        mask_load = mask_load[..., np.newaxis]
+        mask_load = mask_load.astype('float32')
+        mask_load /= 255.  # scale masks to [0, 1]
+    
+        weight_load = weight_load.astype('float32')
+    
+        yield (img_load,mask_load,weight_load)
+        num += 1
+        if num==58:
+            num=0
+        
+        
+def plate_deeptrain(folder, img_rows,img_cols, dims, batch_size = 32, epoch = 100, weights = None):
 
     imgs_train, imgs_mask_train, imgs_weight_train  = load_train_data(folder)
-
     imgs_train = imgs_train.astype('float32')
 
     imgs_mask_train = imgs_mask_train[..., np.newaxis]
@@ -346,13 +383,17 @@ def plate_deeptrain(folder, img_rows,img_cols, dims):
 
     plate_model = get_unet(dims,img_rows,img_cols)
     model_checkpoint = ModelCheckpoint(folder+'weights.h5', monitor='val_loss', save_best_only=True)
-
-    plate_model.fit(imgs_train, imgs_mask_train, batch_size=32, nb_epoch=100, verbose=1, shuffle=True,
+    
+    if weights:
+        plate_model.load_weights(weights)
+        
+    plate_model.fit(imgs_train, imgs_mask_train, batch_size=batch_size, epoch=epoch, verbose=1, shuffle=True,
               validation_split=0.2,sample_weight = imgs_weight_train,
               callbacks=[model_checkpoint])
+    
 
 
-    imgs_test, imgs_id_test = load_test_data(folder)
+    '''imgs_test, imgs_id_test = load_test_data(folder)
 
     imgs_test = imgs_test.astype('float32')
     
@@ -367,7 +408,21 @@ def plate_deeptrain(folder, img_rows,img_cols, dims):
     for image, image_id in zip(imgs_mask_test, imgs_id_test):
         image = np.reshape(image,(img_rows,img_cols))
         image = (image * 255.).astype(np.uint8)
-        imsave(os.path.join(test_dir, str(image_id) + '_pred.png'), image)
+        imsave(os.path.join(test_dir, str(image_id) + '_pred.png'), image)'''
+    
+def plate_deeptrain_batches(folder, img_rows,img_cols, dims, train_batch_nb = 230, validation_batch_nb = 58, epochs = 100, weights = None):
+
+
+    plate_model = get_unet(dims,img_rows,img_cols)
+    model_checkpoint = ModelCheckpoint(folder+'weights.h5', monitor='val_loss', save_best_only=True)
+    if weights:
+        plate_model.load_weights(weights)
+    
+    plate_model.fit_generator(train_generator(folder), steps_per_epoch=train_batch_nb, epochs=epochs,
+                              validation_data=valid_generator(folder),validation_steps = validation_batch_nb,verbose=1,
+                              callbacks=[model_checkpoint])
+
+
         
 def load_train_data(folder):
     imgs_train = np.load(folder+'imgs_train.npy')

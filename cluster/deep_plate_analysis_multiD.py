@@ -62,24 +62,15 @@ for i in range(position,position+num_positions):#range(len(positions)):
         stack[:,:,j] = MMobj.get_image_fast(frame=0,channel=bf_ch,plane = plane,position=i, compress = 1)
         stack[:,:,j] = nd.gaussian_filter(stack[:,:,j],3)
     
-    print('t1: '+str(time.time()-start))
-    start = time.time()
-    
     meanstack = np.mean(stack,axis =2)
     for m in range(stack.shape[2]):
         stack[:,:,m] = stack[:,:,m]-meanstack
     
     stack = stack/np.std(stack)
-    
-    print('t1b: '+str(time.time()-start))
-    start = time.time()
-    
+ 
     #load fluo image
     im_fluo = MMobj.get_stack_fast(frame=0,channel=fluo_ch,position=i, compress = 1)[:,:,0]
-    
-    print('t2: '+str(time.time()-start))
-    start = time.time()
-    
+ 
     complete = np.empty((MMobj.height,MMobj.width))
     complete_proba = np.empty((MMobj.height,MMobj.width))
     
@@ -98,12 +89,9 @@ for i in range(position,position+num_positions):#range(len(positions)):
     
     stack = stack[topad:-topad,topad:-topad,:]
     complete = complete_proba.copy()
-    
-    print('t3: '+str(time.time()-start))
-    start = time.time()
-    
-    complete[complete<0.2]=0
-    complete[complete>0.2]=1
+
+    complete[complete<0.3]=0
+    complete[complete>0.3]=1
     masklab = morphology.label(complete)
     cellinfo = regionprops(masklab, im_fluo)  
     cellinfo2 = regionprops(masklab, complete_proba)  
@@ -113,11 +101,9 @@ for i in range(position,position+num_positions):#range(len(positions)):
         c = cellinfo[x]
         c2 = cellinfo2[x]
         if (c.label>0)&(c.area>100)&(c.area<10000):
-            if (c.solidity>0.8)&(c.eccentricity>0.6)&(c2.max_intensity>0.8):
-                newMask[c.coords[:,0],c.coords[:,1]]=1
-    
-    print('t4: '+str(time.time()-start))
-    start = time.time()
+            if (c2.mean_intensity>0.5):
+                if (c.solidity>0.8):#&(c.eccentricity>0.8):
+                    newMask[c.coords[:,0],c.coords[:,1]]=1
     
     #calculate local properties
     complete_lab = label(newMask)
@@ -129,35 +115,29 @@ for i in range(position,position+num_positions):#range(len(positions)):
     sum_int = [np.sum(im_fluo[x.coords[:,0],x.coords[:,1]]) for x in cell_info]
     all_pix = [im_fluo[x.coords[:,0],x.coords[:,1]] for x in cell_info]
     area = [x.area for x in cell_info]
+    eccentricity = [x.eccentricity for x in cell_info]
+    box3_fluo = [np.mean(im_fluo[int(x.centroid[0])-1:int(x.centroid[0])+2,int(x.centroid[1])-1:int(x.centroid[1])+2]) for x in cell_info]
     #create a dataframe
-    cell_struct = {'sum_fluo': sum_int,'mean_fluo':mean_int,'area': area, 'posx': posx, 'posy': posy,'all_pix':all_pix}
+    cell_struct = {'sum_fluo': sum_int,'mean_fluo':mean_int,'box3_fluo': box3_fluo, 'area': area, 'posx': posx, 'posy': 
+                   posy,'all_pix':all_pix, 'eccentricity': eccentricity}
     cell_frame = pd.DataFrame(cell_struct)
     cell_frame['pos_name'] = positions[i]
     cell_frame['well_name'] = well_str[i]
     
-    print('t5: '+str(time.time()-start))
-    start = time.time()
-    
     cell_frame.to_csv(folder_to_save+'/dataframes/'+positions[i]+'.csv')
     
-    print('t6: '+str(time.time()-start))
-    start = time.time()
-    
     #save image
-    fig, ax = plt.subplots(figsize=(10,10))
+    fig, ax = plt.subplots(figsize=(20,20))
     plt.imshow(stack[:,:,0],cmap='gray')
     plt.imshow(label2rgb(label(newMask),bg_label=0),alpha = 0.3)
+    for x in cell_info:
+        plt.text(x=x.centroid[1],y=x.centroid[0],s = str(x.label))
     plt.show()
     fig.savefig(folder_to_save+'/images/'+positions[i]+'seg.png')
-    
-    print('t7: '+str(time.time()-start))
-    start = time.time()
     
     np.save(folder_to_save+'/mask_prob/mask_'+str(i)+'.npy',newMask)
     #np.save(folder_to_save+'corr_'+str(i)+'.npy',correlated_norm_gauss)
     np.save(folder_to_save+'/mask_prob/prob_'+str(i)+'.npy',complete_proba)
     
-    print('t8: '+str(time.time()-start))
-    start = time.time()
     
     
