@@ -130,8 +130,8 @@ for i in range(position,position+num_positions):#range(len(positions)):
     fig, ax = plt.subplots(figsize=(20,20))
     plt.imshow(stack[:,:,0],cmap='gray')
     plt.imshow(label2rgb(label(newMask),bg_label=0),alpha = 0.3)
-    for x in cell_info:
-        plt.text(x=x.centroid[1],y=x.centroid[0],s = str(x.label))
+    for x in range(len(cell_info)):
+        plt.text(x=cell_info[x].centroid[1],y=cell_info[x].centroid[0],s = str(x))
     plt.show()
     fig.savefig(folder_to_save+'/images/'+positions[i]+'seg.png')
     
