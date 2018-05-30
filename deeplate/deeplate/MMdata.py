@@ -1,10 +1,8 @@
 import os
 import re
-from PIL import Image
 import struct
 import numpy as np
 import pandas as pd
-from PIL import Image
 
 class MMData:
     """Parsing of MicroManager metadata"""
